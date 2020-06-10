@@ -7,8 +7,8 @@ router.get('/ps3', function(req, res, next) {
 });
 
 router.post('/ps3', function(req, res, next) {
-  res.send({
-    string: req.body.inputString,
+  res.render('index', {
+    inputString: req.body.inputString,
     len : req.body.inputString.length
   })
 });
