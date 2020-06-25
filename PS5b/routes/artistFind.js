@@ -12,8 +12,6 @@ client.flushdb((err, success) => {
 router.route('/ps4')
     .post(async (req, res, next) => {
         let artist = req.body.artist;
-        let dataCall = await fetch(CONFIG.baseURL + '?method=artist.getinfo&artist=' + artist + '&api_key=' + CONFIG.key + '&format=json');
-        let data = await JSON.stringify(dataCall);
 
         //converting redis for use with async
         const existsAsync = promisify(client.exists).bind(client);
@@ -25,7 +23,7 @@ router.route('/ps4')
         if (match) { //if artist is in cache
 
             //get response data from cache and turn it into JSON object
-            let result = await getAsync(data);
+            let result = await getAsync(artist);
             let object = JSON.parse(result);
 
             object.fromCache = true;
@@ -35,15 +33,12 @@ router.route('/ps4')
             let call = await fetch(CONFIG.baseURL + '?method=artist.getinfo&artist=' + artist + '&api_key=' + CONFIG.key + '&format=json');
             let callJSON = await call.json();
             let callString = JSON.stringify(callJSON);
-            let newArtist = req.body.artist;
 
             //set response data and artist in cache
-            await setAsync(data, callString);
-            await setAsync(artist, newArtist);
+            await setAsync(artist, callString);
 
             //cache expires after 30 seconds
             await expireAsync(artist, 30);
-            await expireAsync(data, 30)
 
             callJSON.fromCache = false;
             res.send(callJSON)
