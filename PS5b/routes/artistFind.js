@@ -11,32 +11,42 @@ client.flushdb((err, success) => {
 
 router.route('/ps4')
     .post(async (req, res, next) => {
-        let artist = req.body.artist
+        let artist = req.body.artist;
         let dataCall = await fetch(CONFIG.baseURL + '?method=artist.getinfo&artist=' + artist + '&api_key=' + CONFIG.key + '&format=json');
-        let data = JSON.stringify(dataCall);
+        let data = await JSON.stringify(dataCall);
 
+        //converting redis for use with async
         const existsAsync = promisify(client.exists).bind(client);
         const getAsync = promisify(client.get).bind(client);
         const setAsync = promisify(client.set).bind(client);
         const expireAsync = promisify(client.expire).bind(client);
 
         let match = await existsAsync(artist);
-        if (match) { //key exists, grab value=>
+        if (match) { //if artist is in cache
 
+            //get response data from cache and turn it into JSON object
             let result = await getAsync(data);
-            res.send(result + ' cached ')
+            let object = JSON.parse(result);
 
-        } else {
+            object.fromCache = true;
+            res.send(object)
+
+        } else { //if artist is not in cache
             let call = await fetch(CONFIG.baseURL + '?method=artist.getinfo&artist=' + artist + '&api_key=' + CONFIG.key + '&format=json');
-            let callJSON = JSON.stringify(call);
-            let newArtist = req.body.artist
+            let callJSON = await call.json();
+            let callString = JSON.stringify(callJSON);
+            let newArtist = req.body.artist;
 
-            await setAsync(data, callJSON);
+            //set response data and artist in cache
+            await setAsync(data, callString);
             await setAsync(artist, newArtist);
+
+            //cache expires after 30 seconds
             await expireAsync(artist, 30);
             await expireAsync(data, 30)
 
-            res.send(callJSON + ' not cached ')
+            callJSON.fromCache = false;
+            res.send(callJSON)
         }
     })
 module.exports = router;
