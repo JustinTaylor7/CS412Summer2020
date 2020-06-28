@@ -16,7 +16,7 @@ export class ListComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  showSummary(firstName: string) {
-    this.selectedPerson = this.people.find(name => name.artist === firstName);
+  showSummary(artist: string) {
+    this.selectedPerson = this.people.find(name => name.artist === artist);
   }
 }
