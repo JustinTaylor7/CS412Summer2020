@@ -1,0 +1,21 @@
+<h2 >Welcome to {{title}} : Search an artist for more info!</h2>
+
+Artist: <input [formControl]="artistControl"> : {{artist}}
+
+<button (click)="getArtistSummary(); click = true">Query</button>
+<br/>
+<br/>
+<div name="outerList">
+  <ul *ngFor="let person of currentArtist">
+    <div *ngIf="click && artistControl.status == 'INVALID'">Please Type an Artist Name</div><br/>
+    <div *ngIf="click && artistControl.status != 'INVALID'">Artist Info:</div><br/>
+    <div *ngIf="click && artistControl.status != 'INVALID'">Listeners : {{person.listeners}}</div><br/>
+    <br/>
+    <div *ngIf="click && artistControl.status != 'INVALID'">Play Count: {{person.plays}}</div><br/>
+    <br/>
+    <div *ngIf="click && artistControl.status != 'INVALID'">Summary: {{person.bio}}</div><br/>
+    <br/>
+    <div *ngIf="click && artistControl.status != 'INVALID'">From Cache? : {{person.fromCache}}</div><br/>
+  </ul>
+</div>
+<div *ngIf="click"><button (click)="click = false">Reset</button></div>
